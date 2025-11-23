@@ -2,7 +2,12 @@ import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
-import joblib
+
+from sklearn.compose import ColumnTransformer
+from sklearn.preprocessing import OneHotEncoder, StandardScaler
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.pipeline import Pipeline
+
 
 st.set_page_config(
     page_title="Abandono escolar – Dashboard",
@@ -21,9 +26,48 @@ def load_data():
     return df
 
 @st.cache_resource
+@st.cache_resource
 def load_model():
-    clf = joblib.load("modelo_dropout.pkl")
+    # Usamos el mismo dataset de la app
+    df = load_data()
+
+    # Separar X e y
+    X = df.drop(columns=['Target'])
+    y = df['Target']
+
+    # Detectar columnas numéricas y categóricas
+    numeric_features = X.select_dtypes(exclude='object').columns
+    categorical_features = X.select_dtypes(include='object').columns
+
+    # Transformaciones
+    numeric_transformer = StandardScaler()
+    categorical_transformer = OneHotEncoder(handle_unknown='ignore')
+
+    preprocess = ColumnTransformer(
+        transformers=[
+            ('num', numeric_transformer, numeric_features),
+            ('cat', categorical_transformer, categorical_features),
+        ]
+    )
+
+    # Modelo (usa los mismos hiperparámetros que en tu notebook,
+    # si allá pusimos otros, ajústalos igual)
+    rf = RandomForestClassifier(
+        n_estimators=200,
+        random_state=42,
+        class_weight='balanced'
+    )
+
+    clf = Pipeline(steps=[
+        ('preprocess', preprocess),
+        ('model', rf)
+    ])
+
+    # Entrenar el modelo
+    clf.fit(X, y)
+
     return clf
+
 
 df = load_data()
 clf = load_model()
@@ -244,3 +288,4 @@ elif pagina == "Simulador de predicción":
             "No sustituye el análisis individual del caso, pero puede ayudar a priorizar "
             "estudiantes en riesgo para ofrecerles apoyo oportuno."
         )
+Entrenar modelo dentro de la app

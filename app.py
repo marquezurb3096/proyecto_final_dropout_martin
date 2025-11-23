@@ -288,4 +288,5 @@ elif pagina == "Simulador de predicción":
             "No sustituye el análisis individual del caso, pero puede ayudar a priorizar "
             "estudiantes en riesgo para ofrecerles apoyo oportuno."
         )
-Entrenar modelo dentro de la app
+# Entrenar modelo dentro de la app
+
